@@ -5,7 +5,7 @@
 std::vector<std::string> bf_algorithm(std::string input_string){
     std::vector<std::string> result;
     int n = input_string.size()-1;
-    for (auto d = 0; d < n-1; d++){
+    for (auto d = 0; d < n; d++){
         int j = n - d;
         int k = -1;  // 1st substring instance start
         int l = -1;  // 2nd substring instance start
@@ -40,5 +40,5 @@ void brute_force(std::string input){
     auto res = bf_algorithm(input);
     std::cout<<std::endl;
     for(auto i = 0; i < res.size(); i++)
-        std::cout<<res[i]<<std::endl;
+        std::cout<<'['<<i+1<<']'<<res[i]<<std::endl;
 }
