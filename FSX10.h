@@ -1,4 +1,4 @@
-/* ********************************************************************* *
+/* *********************** *
 *                                                                        *
 *   C implementation of Franek-Smyth-Xiao Algorithm FSX10()              *
 *   works along the same principles as Crochemore's algorithm            *  
@@ -15,22 +15,7 @@
 *                                                                        *
 *         Corrected July 30, 2003 (the gap handling functions)           *
 *                                                                        *
-* ************************************************************************/
-
-// when using compiler that cannot inline, just uncomment the
-// following line 
-// #define NOINLINING 
-
-
-
-#ifdef NOINLINING
- #define INLINE
-#else
- #define INLINE inline
-#endif
-
-
-
+* ************************/
 // FSX10 global data 
 
 #include <stdio.h>
@@ -40,22 +25,19 @@
 #include <iostream>
 #include <chrono>
 
-/* *************************************************
-           FSX10 data and functions begin
-   ************************************************* */
-// FSX10 global data 
+//globals
 unsigned int null;
 unsigned int N;
 unsigned int N_1;
 
-unsigned int* CNext = NULL;         // will be array 
-unsigned int* CPrev = NULL;         // will be array
-unsigned int* CMember = NULL;       // will be array
-unsigned int* CStart = NULL;        // will be array
-unsigned int* FNext = NULL;         // will be array
-unsigned int* FPrev = NULL;         // will be array
-unsigned int* FMember = NULL;       // will be array
-unsigned int* Refine = NULL;        // will be array
+unsigned int* CNext = NULL; 
+unsigned int* CPrev = NULL;
+unsigned int* CMember = NULL;
+unsigned int* CStart = NULL;
+unsigned int* FNext = NULL;
+unsigned int* FPrev = NULL;
+unsigned int* FMember = NULL;
+unsigned int* Refine = NULL;
 
 unsigned int* FStart = NULL;        // will be a stack-array
 unsigned int FStartTop;
@@ -84,593 +66,22 @@ unsigned int* GapList = NULL;      // will be an array
 unsigned int* GNext = NULL;        // will be an array
 unsigned int* GPrev = NULL;        // will be an array
 
-/* *************************************************
-   test and debugging functions, if not needed 
-   they can be removed or blocked from show_Classes() 
-   down to show_GPrev().
-   They are only used to see the contents of the various
-   data structures used in the program.
-   ************************************************* */
-
-// function show_Classes -------------------------------------- 
-void show_Classes()
-{
-
-unsigned int i, j;
-char c;
-
-for(j = 0; j < N; j++) {
- if (CStart[j] == null) continue;
- printf("c%d=",j);
- if (CNext[CPrev[CStart[j]]] == 1) 
-   printf("{%d}",CStart[j]);
- else{
-   c = '{';
-   for(i = CStart[j]; i != CPrev[CStart[j]]; i = CNext[i]) {
-    printf("%c%d",c,i);
-    c = ',';
-   }//endfor
-   printf(",%d}",i);
- }
-}//endfor
- 
-putchar('\n');
-fflush(stdout);
-
-}//end show_Classes
-
-
-// function show_CEmptyStack ------------------------------ 
-void show_CEmptyStack()
-{
-
-unsigned int i;
-
-if (CEmptyTop == null) {
-  printf("CEmptyStack is empty\n");
-  fflush(stdout);
-  return;
-}
-
-printf("CEmptyStack:");
-for(i = CEmptyTop; i != 0; i--) 
- printf("%d,",CEmptyStack[i]);
-printf("%d\n",CEmptyStack[i]);
-fflush(stdout);
-
-}//end show_CEmptyStack
-
-
-
-
-
-
-// function show_SelQueue ------------------------------
-void show_SelQueue()
-{
-
-unsigned int i;
-
-if (SelQueueFirst == null) {
-  printf("SelQueue is empty\n");
-  fflush(stdout);
-  return;
-}
-
-printf("SelQueue:");
-for(i = SelQueueFirst; i != SelQueueLast; i++)
- printf("%d,",SelQueue[i]);
-printf("%d\n",SelQueue[i]);
-fflush(stdout);
-
-}//end show_SelQueue
-
-
-
-
-
-
-// function show_ScQueue ------------------------------
-void show_ScQueue()
-{
-
-unsigned int i;
-
-if (ScQueueFirst == null) {
-  printf("ScQueue is empty\n");
-  fflush(stdout);
-  return;
-}
-
-printf("ScQueue:");
-for(i = ScQueueFirst; i != ScQueueLast; i++)
- printf("%d,",ScQueue[i]);
-printf("%d\n",ScQueue[i]);
-fflush(stdout);
-
-}//end show_ScQueue
-
-
-
-
-
-
-// function show_RefStack ------------------------------
-void show_RefStack()
-{
-
-unsigned int i;
-
-if (RefTop == null) {
-  printf("RefStack is empty\n");
-  fflush(stdout);
-  return;
-}
-
-printf("RefStack:");
-for(i = RefTop; i != 0; i--)
- printf("%d,",RefStack[i]);
-printf("%d\n",RefStack[i]);
-fflush(stdout);
-
-}//end show_RefStack
-
-
-
-
-
-
-// function show_FStart ------------------------------
-void show_FStart()
-{
-
-unsigned int i;
-
-printf("FStart:");
-for(i = 0; i < N_1; i++)
- if (FStart[i] == null)
-   printf("*,");
- else
-  printf("%d,",FStart[i]);
-
-if (FStart[i] == null)
-  printf("*\n");
-else
- printf("%d\n",FStart[i]);
-fflush(stdout);
-
-}//end show_FStart
-
-
-
-
-// function show_CStart -------------------------------
-void show_CStart()
-{
-
-unsigned int i;
-
-printf("CStart:");
-for(i = 0; i < N_1; i++) 
- if (CStart[i] == null) 
-   printf("*,");
- else
-   printf("%d,",CStart[i]);
-   
-if (CStart[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",CStart[i]);
-
-fflush(stdout);
-
-}//end show_CStart
-
-
-
-
-
-
-// function show_CNext -------------------------------
-void show_CNext()
-{
-
-unsigned int i;
-
-printf("CNext:");
-for(i = 0; i < N_1; i++) 
- if (CNext[i] == null) 
-   printf("*,");
- else
-   printf("%d,",CNext[i]);
-
-if (CNext[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",CNext[i]);
-
-fflush(stdout);
-
-}//end show_CNext
-
-
-
-
-// function show_CPrev -------------------------------
-void show_CPrev()
-{
-
-unsigned int i;
-
-printf("CPrev:");
-for(i = 0; i < N_1; i++) 
- if (CPrev[i] == null) 
-   printf("*,");
- else
-   printf("%d,",CPrev[i]);
-
-if (CPrev[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",CPrev[i]);
-
-fflush(stdout);
-
-}//end show_CPrev 
-
-
-
-
-// function show_CMember -------------------------------
-void show_CMember()
-{
-
-unsigned int i;
-
-printf("CMember:");
-for(i = 0; i < N_1; i++) 
- if (CMember[i] == null) 
-   printf("*,");
- else
-   printf("%d,",CMember[i]);
-
-if (CMember[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",CMember[i]);
-
-fflush(stdout);
-
-}//end show_CMember
-
-
-
-
-
-// function show_Refine -------------------------------
-void show_Refine()
-{
-
-unsigned int i, r, j;
-
-printf("Refine:");
-for(i = 0; i < N_1; i++) {
- j = N-(i+1);
- if (FStartTop == null || j > FStartTop)
-   r = FStart[j];
- else
-   r = FNext[FPrev[FStart[j]]];
- if (r == null)
-   printf("*,");
- else
-   printf("%d,",r);
-}
-
-j = N-(i+1);
-if (FStartTop == null || j > FStartTop)
-  r = FStart[j];
-else
-  r = FNext[FPrev[FStart[j]]];
-if (r == null)
-  printf("*\n");
-else
-  printf("%d\n",r);
-
-fflush(stdout);
-
-}//end show_Refine
-
-
-
-
-
-// function show_FNext -------------------------------
-void show_FNext()
-{
-
-unsigned int i;
-
-printf("FNext:");
-for(i = 0; i < N_1; i++) 
- if (FNext[i] == null) 
-   printf("*,");
- else
-   printf("%d,",FNext[i]);
-
-if (FNext[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",FNext[i]);
-
-fflush(stdout);
-
-}//end show_FNext
-
-
-
-
-// function show_FPrev -------------------------------
-void show_FPrev()
-{
-
-unsigned int i;
-
-printf("FPrev:");
-for(i = 0; i < N_1; i++) 
- if (FPrev[i] == null) 
-   printf("*,");
- else
-   printf("%d,",FPrev[i]);
-
-if (FPrev[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",FPrev[i]);
-
-fflush(stdout);
-
-}//end show_FPrev
-
-
-
-
-
-// function show_FMember -------------------------------
-void show_FMember()
-{
-
-unsigned int i;
-
-printf("FMember:");
-for(i = 0; i < N_1; i++) 
- if (FMember[i] == null) 
-   printf("*,");
- else
-   printf("%d,",FMember[i]);
-
-if (FMember[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",FMember[i]);
-
-fflush(stdout);
-
-}//end show_FMember
-
-
-
-
-// function show_Families ----------------------------
-void show_Families()
-{
-
-unsigned int i, j;
-char c;
-
-if (FStartTop == null) {
-  printf("no families\n");
-  return;
-}
-
-for(i = 0; i <= FStartTop; i++) {
- printf("family[%d]=",i);
- c = '{';
- j = FStart[i]; 
- while(1) {
-  printf("%cc%d",c,j);
-  c = ',';
-  if (j == FPrev[FStart[i]]) break;
-  j = FNext[j];
- }
- printf("}\n");
- fflush(stdout);
-}
-
-}//end show_Families
-
-
-
-
-// function show_Index -----------------------------------
-void show_Index()
-{
- void show_Index1(unsigned int);
-
- show_Index1(FNext[0]);
- show_Index1(FPrev[0]);
- printf("%c=0\n",FMember[0]);
- 
-}//end show_Index
-
-
-
-
-// function show_Index1 -----------------------------------
-void show_Index1(unsigned int x)
-{
-
- if (x == null) return;
- show_Index1(FNext[x]);
- show_Index1(FPrev[x]);
- printf("%c=%d\n",FMember[x],x);
-}//end show_Index
-
-
-
-
-
-// function show_Gaps -------------------------------
-void show_Gaps()
-{
-
-unsigned int i, g;
-char c;
-int x;
-
-x = 0;
-for(g = 0; g < N; g++) {
- if (GapList[g] == null) 
-   continue;
- x = 1;
- printf("[Gap=%d",g);
- c = ']';
- for(i = GapList[g]; i != null; i = GNext[i], c=',')
-  printf("%c%d",c,i);
- putchar('\n');
-}
-if (x == 0) 
-  printf("no Gaps\n");
-fflush(stdout);
-
-}//end show_Gaps
-
-
-
-
-
-
-// function show_Gap -------------------------------
-void show_Gap()
-{
-
-unsigned int i;
-
-printf("Gap:");
-for(i = 0; i < N_1; i++) 
- if (Gap[i] == null) 
-   printf("*,");
- else
-   printf("%d,",Gap[i]);
-
-if (Gap[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",Gap[i]);
-
-fflush(stdout);
-
-}//end show_Gap
-
-
-
-
-
-// function show_GapList -------------------------------
-void show_GapList()
-{
-
-unsigned int i;
-
-printf("GapList:");
-for(i = 0; i < N_1; i++) 
- if (GapList[i] == null) 
-   printf("*,");
- else
-   printf("%d,",GapList[i]);
-
-if (GapList[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",GapList[i]);
-
-fflush(stdout);
-
-}//end show_GapList
-
-
-
-
-
-// function show_GNext -------------------------------
-void show_GNext()
-{
-
-unsigned int i;
-
-printf("GNext:");
-for(i = 0; i < N_1; i++) 
- if (GNext[i] == null) 
-   printf("*,");
- else
-   printf("%d,",GNext[i]);
-
-if (GNext[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",GNext[i]);
-
-fflush(stdout);
-
-}//end show_GNext
-
-
-
-
-
-// function show_GPrev -------------------------------
-void show_GPrev()
-{
-
-unsigned int i;
-
-printf("GPrev:");
-for(i = 0; i < N_1; i++) 
- if (GPrev[i] == null) 
-   printf("*,");
- else
-   printf("%d,",GPrev[i]);
-
-if (GPrev[i] == null) 
-  printf("*\n");
-else
-  printf("%d\n",GPrev[i]);
-
-fflush(stdout);
-
-}//end show_GPrev
-
-
-
-
-/* *******************************************************
+/* *******************
           FSX10 datastructure handling functions 
-          Since they are simple, they are inlined,
+          Since they are simple, they are ,
           if inlining is possible
-   ******************************************************* */
+   ******************* */
 
 
 // function CEmptyStackInit ------------------------------
-INLINE void CEmptyStackInit() 
+void CEmptyStackInit() 
 {
   CEmptyTop = null;
 
 }//end CEmptyStackInit
 
-
-
-
 // function CEmptyStackPush -----------------------------
-INLINE unsigned int CEmptyStackPush(unsigned int i) 
+unsigned int CEmptyStackPush(unsigned int i) 
 {
  if (CEmptyTop == null) 
    CEmptyStack[CEmptyTop = 0] = i; 
@@ -683,7 +94,7 @@ INLINE unsigned int CEmptyStackPush(unsigned int i)
 
 
 // function CEmptyStackPop --------------------------------
-INLINE unsigned int CEmptyStackPop() 
+unsigned int CEmptyStackPop() 
 {
  if (CEmptyTop==null)
    return null;
@@ -698,7 +109,7 @@ INLINE unsigned int CEmptyStackPop()
 
 
 // function SelQueueInit --------------------------------
-INLINE void SelQueueInit() 
+void SelQueueInit() 
 {
   SelQueueFirst =  SelQueueLast = null; 
 
@@ -708,7 +119,7 @@ INLINE void SelQueueInit()
 
 
 // function SelQueueInsert --------------------------------
-INLINE unsigned int SelQueueInsert(unsigned int i) 
+unsigned int SelQueueInsert(unsigned int i) 
 {
  if (SelQueueFirst == null) 
    SelQueue[SelQueueFirst = SelQueueLast = 0] = i;
@@ -718,11 +129,8 @@ INLINE unsigned int SelQueueInsert(unsigned int i)
 
 }//end SelQueueInsert
 
-
-
-
 // function SelQueueHead -----------------------------------
-INLINE unsigned int SelQueueHead() 
+unsigned int SelQueueHead() 
 {
  unsigned int i;
  if (SelQueueFirst==null) 
@@ -737,21 +145,15 @@ INLINE unsigned int SelQueueHead()
 }//end SelQueueHead
 
 
-
-
 // function RefStackInit ----------------------------------
-INLINE void RefStackInit() 
+void RefStackInit() 
 {
   RefTop = null;
 
 }//end RefStackInit
 
-
-
-
-
 // function RefStackPop ------------------------------------
-INLINE unsigned int RefStackPop() 
+unsigned int RefStackPop() 
 {
  if (RefTop == null) 
    return null;
@@ -763,11 +165,8 @@ INLINE unsigned int RefStackPop()
 
 }//end RefStackPop
 
-
-
-
 // function RefStackPush ----------------------------------
-INLINE unsigned int RefStackPush(unsigned int i) 
+unsigned int RefStackPush(unsigned int i) 
 {
  if (RefTop == null) 
    RefStack[RefTop=0] = i; 
@@ -776,22 +175,15 @@ INLINE unsigned int RefStackPush(unsigned int i)
  return RefTop;
 }//end RefStackPush
 
-
-
-
 // function ScQueueInit ----------------------------------
-INLINE void ScQueueInit() 
+void ScQueueInit() 
 {
   ScQueueFirst = ScQueueLast = null;
 
 }//end ScQueueInit
 
-
-
-
-
 // function ScQueueHead ------------------------------------
-INLINE unsigned int ScQueueHead() 
+unsigned int ScQueueHead() 
 {
  unsigned int i;
  if (ScQueueFirst == null) 
@@ -805,11 +197,8 @@ INLINE unsigned int ScQueueHead()
 
 }//end ScQueueHead
 
-
-
-
 // function ScQueueInsert ----------------------------------
-INLINE unsigned int ScQueueInsert(unsigned int i) 
+unsigned int ScQueueInsert(unsigned int i) 
 {
  if (ScQueueFirst == null) 
    ScQueue[ScQueueLast=ScQueueFirst=0] = i; 
@@ -822,18 +211,11 @@ INLINE unsigned int ScQueueInsert(unsigned int i)
 
 
 
-/* ******************************************************
-                       FSX10 functions 
-   ****************************************************** */
-
-
-
-
-// no need to inline, called only once
+/* functions  */
 // function CreateData -----------------------------------
-void CreateData(char* string) 
+void CreateData(std::string str) 
 {
-  N = strlen(string);
+  N = str.length();
   N_1 = N-1;
   null = N+1;
 
@@ -866,24 +248,6 @@ void CreateData(char* string)
 }//end CreateData
 
 
-
-
-
-// no need to inline, called only once
-// function DeallocateData ----------------------------
-void DeallocateData()
-{
-
-free((void*) CEmptyStack);
-free((void*) Gap);
-
-}//end DeallocateData*/
-
-
-
-
-
-
 // We will build a binary search tree, and we will use
 // FNext[], FPrev[], and FMember[] to do so
 // FNext will fake right children
@@ -893,9 +257,9 @@ free((void*) Gap);
 // The puprose for Index is to replace characters by indexes to work
 // with an index alphabet
 
-// no need to inline, called only once
+// no need to  called only once
 // function CreateIndex -----------------------------------
-void CreateIndex(char* string) 
+void CreateIndex(std::string str) 
 {
 
 unsigned int i, j, root, last;
@@ -905,17 +269,17 @@ unsigned int i, j, root, last;
     // insert string[i] unsigned into the search tree 
     if (root == null) {
       root = last = 0;
-      FMember[root] = string[i];
+      FMember[root] = str[i];
       FNext[root] = FPrev[root] = null;
       continue;
     }
     j = root;
     while(1) {
-     if (string[i] == (char) FMember[j]) {
+     if (str[i] == (char) FMember[j]) {
        break;                                // break the while loop 
-     }else if (string[i] < (char) FMember[j]) {     // go left=CPrev 
+     }else if (str[i] < (char) FMember[j]) {     // go left=CPrev 
        if (FPrev[j] == null) {
-         FMember[++last] = string[i];
+         FMember[++last] = str[i];
          FPrev[last] = FNext[last] = null;
          FPrev[j] = last;
          break;                              // break the while loop 
@@ -925,7 +289,7 @@ unsigned int i, j, root, last;
        }
      }else{                                  // go rigth=CNext
        if (FNext[j] == null) {
-         FMember[++last] = string[i];
+         FMember[++last] = str[i];
          FNext[last] = FPrev[last] = null;
          FNext[j] = last;
          break;                              // break the while loop 
@@ -939,11 +303,9 @@ unsigned int i, j, root, last;
 
 }//end CreateIndex
 
-
-
 // given a character from the alphabet, returns its index
 // function Index -------------------------------------
-INLINE unsigned int Index(char c) 
+unsigned int Index(char c) 
 {
 
 unsigned int i;
@@ -960,15 +322,9 @@ while(1) {
 
 }//end Index
 
-
-
-
-
-
-// modified July 30, 2003
 // add position i to the gaplist of gap-size g at the beginning of the list
 // function AddToGapList ------------------------------------
-INLINE void AddToGapList(unsigned int i,unsigned int g)
+void AddToGapList(unsigned int i,unsigned int g)
 {
 
  if (GapList[g] == null) {
@@ -986,13 +342,9 @@ INLINE void AddToGapList(unsigned int i,unsigned int g)
 
 }//end AddToGapList
 
-
-
-
-// modified July 200, 2003
 // remove position i from the gaplist of gap-size g 
 // function RemoveFromGapList -----------------------------
-INLINE void RemoveFromGapList(unsigned int i,unsigned int g)
+void RemoveFromGapList(unsigned int i,unsigned int g)
 {
 
   if (Gap[i]!=g) return;  // not really in GapList
@@ -1024,71 +376,61 @@ INLINE void RemoveFromGapList(unsigned int i,unsigned int g)
 
 }//end RemoveFromGapList
 
-
-
-
-// modified July 30, 2003
 // output all repetitions on level L
 // function output_Reps ----------------------------------
-INLINE void output_Reps(unsigned int L)
+void output_Reps(unsigned int L, bool printing)
 {
+  if (printing){
+  int s, j, m, xs, r;
+  static int first = 1;
 
-int s, j, m, xs, r;
-static int first = 1;
+  while((j = GapList[L]) != null) {
+    RemoveFromGapList(j,L);
+    xs = s = j;
+    r = 2;
+    // so we now that there is a rep (xs,L,r)
+    // can we extend it to the left?
+    m = xs;
+    while(1) {
+      m = m-L;
+      if (m < 0) break;
+      if (Gap[m]!=L) break;
+      if (CMember[m]!=CMember[xs]) break;
+      // yes, we can extend it to the left, so do so
+      RemoveFromGapList(m,L);
+      r++;
+      s = m;
+    }//endwhile
 
-while((j = GapList[L]) != null) {
- RemoveFromGapList(j,L);
- xs = s = j;
- r = 2;
- // so we now that there is a rep (xs,L,r)
- // can we extend it to the left?
- m = xs;
- while(1) {
-  m = m-L;
-  if (m < 0) break;
-  if (Gap[m]!=L) break;
-  if (CMember[m]!=CMember[xs]) break;
-  // yes, we can extend it to the left, so do so
-  RemoveFromGapList(m,L);
-  r++;
-  s = m;
- }//endwhile
+    // now (s,L,r) is the leftmost extension of (xs,L,r)
+    // can we extend (xs,L,r) to the right ?
+    m = xs+L;
+    while(1) {
+      m = m+L;
+      if (m >= N) break;
+      if (Gap[m]!=L) break;
+      if (CMember[m]!=CMember[xs]) break;
+      // yes, we can extend it to the right, so do so
+      RemoveFromGapList(m,L);
+      r++;
+    }//endwhile
 
- // now (s,L,r) is the leftmost extension of (xs,L,r)
- // can we extend (xs,L,r) to the right ?
- m = xs+L;
- while(1) {
-  m = m+L;
-  if (m >= N) break;
-  if (Gap[m]!=L) break;
-  if (CMember[m]!=CMember[xs]) break;
-  // yes, we can extend it to the right, so do so
-  RemoveFromGapList(m,L);
-  r++;
- }//endwhile
+    // now (s,L,r) is the maximal repetition
 
- // now (s,L,r) is the maximal repetition
+    if (first) {
 
- if (first) {
-   printf("indexing starts at position 0\n");
-   printf("repetitions are output in the following format: (s,l,p)\n");
-   printf("     s = starting position of the generator\n");
-   printf("     l = length of the generator\n");
-   printf("     p = power of the repetition\n");
-   first=0;
- }
- printf("(%d,%d,%d)\n",s,L,r);
- fflush(stdout);
-
-}//endwhile
-}//end output_Reps
-
-
-
-
+      first=0;
+    }
+    printf("(%d,%d,%d)\n",s,L,r);
+    fflush(stdout);
+    }
+  } else {
+    return;
+  }
+}
 
 // function StartNewFamily ---------------------------
-INLINE unsigned int StartNewFamily(unsigned int j)
+unsigned int StartNewFamily(unsigned int j)
 {
 
 unsigned int r;
@@ -1115,11 +457,8 @@ unsigned int r;
 
 }//end StartNewFamily
 
-
-
-
 // function AddToFamily ---------------------------
-INLINE void AddToFamily(unsigned int i,unsigned int j)
+void AddToFamily(unsigned int i,unsigned int j)
 {
  
  // add c_j to family f_i
@@ -1132,11 +471,8 @@ INLINE void AddToFamily(unsigned int i,unsigned int j)
 
 }//end AddToFamily
 
-
-
-
 // function RemoveFromFamily ---------------------------
-INLINE void RemoveFromFamily(unsigned int i,unsigned int j)
+void RemoveFromFamily(unsigned int i,unsigned int j)
 {
 
 unsigned int r;
@@ -1166,11 +502,8 @@ unsigned int r;
 
 }//end RemoveFromFamily
 
-
-
-
 // function RemoveFromClass ------------------------------
-INLINE void RemoveFromClass(unsigned int e,unsigned int j)
+void RemoveFromClass(unsigned int e,unsigned int j)
 {
 
 unsigned int m;
@@ -1216,11 +549,9 @@ unsigned int m;
 
 }//end RemoveFromClass*/
 
-
-
 // add position i to the end of class c_j
 // function AddToClass ---------------------------------
-INLINE void AddToClass(unsigned int i,unsigned int j)
+void AddToClass(unsigned int i,unsigned int j)
 {
 
 unsigned int m;
@@ -1242,12 +573,8 @@ unsigned int m;
 
 }//end AddToClass
 
-
-
-
-
 // function GetRefine ------------------------------------
-INLINE unsigned int GetRefine(unsigned int i)
+unsigned int GetRefine(unsigned int i)
 {
 
 unsigned int j;
@@ -1264,7 +591,7 @@ else
 
 
 // function SetRefine ------------------------------------
-INLINE void SetRefine(unsigned int i,unsigned int r)
+void SetRefine(unsigned int i,unsigned int r)
 {
 
 unsigned int j;
@@ -1278,15 +605,12 @@ else
 
 }//end SetRefine
 
-
-
-
 // restore Refine array to its initial state with all 
 // entries being null and restore RefStack to its initial 
 // state when it is empty.
 
 // function CleanRefine ----------------------------------
-INLINE void CleanRefine() 
+void CleanRefine() 
 {
 
 unsigned int i;
@@ -1301,11 +625,9 @@ unsigned int i;
 // We are assuming an indexed alphabet and thus we are assuming 
 // to have Index(letter) that provides an index in the range 0..n 
 // for each letter occuring in string.
-
-// modified July 30, 2003
-// no need to inline, called only once
+// no need to  called only once
 // function InitLevel -----------------------------------
-void InitLevel(char* string) 
+void InitLevel(std::string str) 
 {
  
  unsigned int i, j, k, k1;
@@ -1340,7 +662,7 @@ void InitLevel(char* string)
 
  k = 0;
  for(i = 0; i < N ; i++) {            // traverse the string
-  j = Index(string[i]);               // i goes to c_j
+  j = Index(str[i]);               // i goes to c_j
   if (CStart[j] == null)              // c_j is empty
     FStart[k++] = j;
   AddToClass(i,j); 
@@ -1394,7 +716,7 @@ void InitLevel(char* string)
 
 
 // function Refineby -------------------------------------
-INLINE int Refineby(unsigned int e,unsigned int j,int init) 
+int Refineby(unsigned int e,unsigned int j,int init) 
 {
 
  unsigned int e1, j1, j2, j1_family;
@@ -1465,7 +787,7 @@ return 1;   // we have done some refinement
 
 // create level L+1 from L
 // function NextLevel ----------------------------------
-INLINE int NextLevel() 
+int NextLevel() 
 {
 
 unsigned int curr_class, next_class, r, e, j, i, k, i1;
@@ -1622,107 +944,28 @@ return 1;       // we have done some refinement
 
 
 
-
-// modified July 30, 2003
 // function FSX10 -----------------------------------------------
-void FSX10(char* string)
+void FSX10(std::string str, bool printing)
 {
+  unsigned int L;
+  int i;
 
-unsigned int L;
-int i;
-
-CreateData(string);  // allocate memory and initialize global data
-CreateIndex(string); // create index for letters occuring in string
-InitLevel(string);
-        //printf("Level %d:\n",L);show_Classes();    // if desired
-L = 1;
-output_Reps(L);
-while(1) {
-  i = NextLevel();
-  L++;
-         //printf("Level %d:\n",L);show_Classes();   // if desired
-  if (!i) break;
-  output_Reps(L);
-}//endwhile
-
-DeallocateData();
+  CreateData(str);  // allocate memory and initialize global data
+  CreateIndex(str); // create index for letters occuring in string
+  InitLevel(str);
+          //printf("Level %d:\n",L);show_Classes();    // if desired
+  L = 1;
+  output_Reps(L, printing);
+  while(1) {
+    i = NextLevel();
+    L++;
+          //printf("Level %d:\n",L);show_Classes();   // if desired
+    if (!i) break;
+    output_Reps(L, printing);
+  }//endwhile
 
 }//end FSX10
 
-
-
-/* ***********************************************
-        FSX10 data and functions end
-   *********************************************** */
-
-
-
-
-#include <time.h>
-// generate a random string
-// function NewString ----------------------------------------
-char* NewString(char* p)
-{
-
-static int first = 1;
-static unsigned int t;
-unsigned int size;
-unsigned int asize;
-char *string;
-unsigned int i;
-
-if (first) {
-  time((time_t*) &t);
-  srand(t);
-  first = 0;
+void FSX10(std::string str){
+  FSX10(str, false);
 }
-
-
-L1: t = rand();
-    size = t % 50;
-    if (size < 4)
-      goto L1;
- 
-L2: t = rand();
-    asize = t % 8;
-    if (asize < 2)
-      goto L2;
-
-string = (char*) malloc(size+1);
- if (string == NULL) {
-   printf("memory allocation problem\n");
-   exit(1);
- }
- 
- for(i = 0; i < size; i++) {
-  t = rand();
-  string[i] = 'a'+t % asize;
- }
- string[size] = '\0';
-
- if (p != NULL) {
-   if (strcmp(p,string) == 0) {
-     goto L1;
-   }
-   free((void*) p);
- }
- 
- return string;
-
-}//end NewString
-
-
-
-/*
-// function main ----------------------------------------------
-int main()
-{
-
- //char* string = NewString(NULL);  // randomly generated string
- char string[] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
- printf("input:\"%s\"\n",string);
- FSX10(string); 
- 
- return 0;
-
-}//end main*/

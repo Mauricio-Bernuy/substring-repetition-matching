@@ -67,12 +67,12 @@ void test(int numtests, int stringsize, int CASE, int compchars = 2, bool printe
     // Crochemore test //
     start = std::chrono::system_clock::now(); 
     for (auto i=0; i <numtests; i++){
-        crochemore(test);
+        FSX10(test);
     }
     end = std::chrono::system_clock::now(); 
     std::chrono::duration<double> elapsed_seconds1 = end - start; 
-    std::cout<<"Crochemore Result"<<std::endl<<"Avg running time ("<<numtests<<" tests): "<<(elapsed_seconds1.count()*1000/numtests)<<"ms"<<std::endl;
-    if (printend){std::cout<<"Found Substrings: "<<std::endl; crochemore(test,true);}
+    std::cout<<"FSX10/Crochemore Result"<<std::endl<<"Avg running time ("<<numtests<<" tests): "<<(elapsed_seconds1.count()*1000/numtests)<<"ms"<<std::endl;
+    if (printend){std::cout<<"Found Substrings: "<<std::endl; FSX10(test,true);}
     std::cout<<std::endl<<"_______________________"<<std::endl;
     
     //BF test//
@@ -100,10 +100,10 @@ int main(){
     test(1, 500, WORST);
     test(1, 7500, RANDOM);
     */
+    test(40, 150, WORST);
+    //string test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaasasasaaaaaaaaaaa";
 
-    string test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaasasasaaaaaaaaaaa";
-
-    FSX10((char*)test.c_str()); 
+    //FSX10((char*)test.c_str()); 
 
     /*while (true)
         crochemore("aaaaaaaaaa");
