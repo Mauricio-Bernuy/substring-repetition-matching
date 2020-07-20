@@ -40,6 +40,8 @@
         "chrono": "cpp",
         "ratio": "cpp",
         "algorithm": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "array": "cpp",
+        "string_view": "cpp"
     }
 }
