@@ -5,6 +5,8 @@
 #include <random>
 #include "brute_force.h"
 #include "main_lorentz.h"
+#include "crochemore.h"
+#include "FSX10.h"
 
 std::mt19937 rng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 
@@ -50,6 +52,8 @@ void test(int numtests, int stringsize, int CASE, int compchars = 2, bool printe
     std::cout<<"testing string: "<<test<<std::endl;
     std::cout<<"string size: "<<test.size();
     std::cout<<std::endl<<"_______________________"<<std::endl;
+
+    // Main Lorentz test //
     start = std::chrono::system_clock::now(); 
     for (auto i=0; i <numtests; i++){
         main_lorentz(test);
@@ -59,6 +63,19 @@ void test(int numtests, int stringsize, int CASE, int compchars = 2, bool printe
     std::cout<<"Main-Lorentz Result"<<std::endl<<"Avg running time ("<<numtests<<" tests): "<<(elapsed_seconds.count()*1000/numtests)<<"ms"<<std::endl;
     if (printend){std::cout<<"Found Substrings: "<<std::endl; main_lorentz(test,0,true);}
     std::cout<<std::endl<<"_______________________"<<std::endl;
+
+    // Crochemore test //
+    start = std::chrono::system_clock::now(); 
+    for (auto i=0; i <numtests; i++){
+        crochemore(test);
+    }
+    end = std::chrono::system_clock::now(); 
+    std::chrono::duration<double> elapsed_seconds1 = end - start; 
+    std::cout<<"Crochemore Result"<<std::endl<<"Avg running time ("<<numtests<<" tests): "<<(elapsed_seconds1.count()*1000/numtests)<<"ms"<<std::endl;
+    if (printend){std::cout<<"Found Substrings: "<<std::endl; crochemore(test,true);}
+    std::cout<<std::endl<<"_______________________"<<std::endl;
+    
+    //BF test//
     start = std::chrono::system_clock::now(); 
     for (auto i=0; i <numtests; i++){
         bf_algorithm(test);
@@ -74,12 +91,33 @@ void test(int numtests, int stringsize, int CASE, int compchars = 2, bool printe
 
 int main(){
     //exec();
+/*
+    test(1, 5, WORST);
+    test(1, 10, WORST,2,true);
+    test(1, 50, WORST);
+    test(1, 100, WORST);
+    test(1, 250, WORST);
+    test(1, 500, WORST);
+    test(1, 7500, RANDOM);
+    */
 
-    test(100000, 5, WORST);
-    test(100000, 10, WORST);
-    test(100000, 50, WORST);
-    test(10000, 100, WORST);
-    test(1000, 250, WORST);
-    test(1000, 500, WORST);
-    test(1000, 750, WORST);
+    string test = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaasasasaaaaaaaaaaa";
+
+    FSX10((char*)test.c_str()); 
+
+    /*while (true)
+        crochemore("aaaaaaaaaa");
+
+    string test = "aaaaaaaaaaaaaaa";
+    int numtests = 1000;
+    std::chrono::time_point<std::chrono::system_clock> start, end; 
+     start = std::chrono::system_clock::now(); 
+    for (auto i=0; i <numtests; i++){
+        REP(test);
+    }
+    end = std::chrono::system_clock::now(); 
+    std::chrono::duration<double> elapsed_seconds1 = end - start; 
+    std::cout<<"Crochemore Result"<<std::endl<<"Avg running time ("<<numtests<<" tests): "<<(elapsed_seconds1.count()*1000/numtests)<<"ms"<<std::endl;
+    std::cout<<std::endl<<"_______________________"<<std::endl;
+    */
 }
